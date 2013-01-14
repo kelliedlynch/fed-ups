@@ -9,6 +9,15 @@ function _B.new(x,y,size)
 	box.x = x - size/2
 	box.y = y - size/2
 
+	local body = world:addBody(MOAIBox2DBody.DYNAMIC)
+
+	poly = {
+		box.x,box.y,
+		box.x+self.width,box.y,
+		box.x+self.width,box.y+self.height,
+		box.x,box.y+self.height,
+	}
+
 	local texture = MOAIGfxQuad2D.new()
 	texture:setTexture('Resources/Textures/brown-4x4.png')
 	texture:setRect(box.x, box.y, box.x + size, box.y + size)
