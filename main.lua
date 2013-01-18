@@ -9,7 +9,7 @@ viewport = MOAIViewport.new ()
 viewport:setSize ( deviceWidth , deviceHeight )
 screenWidth, screenHeight = 480, 320
 viewport:setScale ( 480, 320 )
-viewport:setOffset ( -1, -1 )
+--viewport:setOffset ( -1, -1 )
 
 layer = MOAILayer2D.new ()
 layer:setViewport ( viewport )
@@ -18,6 +18,21 @@ MOAISim.pushRenderPass ( layer )
 HUDLayer = MOAILayer2D.new ()
 HUDLayer:setViewport ( viewport )
 MOAISim.pushRenderPass ( HUDLayer )
+
+-- initialize the camera
+camera = MOAICamera2D.new()
+layer:setCamera(camera)
+
+fitter = MOAICameraFitter2D.new()
+fitter:setViewport(viewport)
+fitter:setCamera(camera)
+fitter:setBounds(0, 0, 1000, 320)
+fitter:setMin(320)
+fitter:start()
+
+screenAnchor = MOAICameraAnchor2D.new()
+
+fitter:insertAnchor(screenAnchor)
 
 -- set up the world and start its simulation
 world = MOAIBox2DWorld.new ()
@@ -48,7 +63,6 @@ damageCounter = MOAITextBox.new ()
 damageCounter:setFont ( font )
 damageCounter:setTextSize ( 24 )
 damageCounter:setString ( text )
-damageCounter:spool ()
 damageCounter:setRect ( 0,0, 200, 40 )
 damageCounter:setAlignment ( MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY )
 damageCounter:setYFlip(true)
@@ -56,5 +70,6 @@ layer:insertProp ( damageCounter )
 --fixture2 = staticBody:addRect ( 10, 10, 460, 40 )
 --fixture2:setFilter ( 0x02 )
 --fixture2:setCollisionHandler ( onCollide, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END, 0x00 )
+FUEventDispatcher = require "FUEventDispatcher"
 
 require "FUDispatch"

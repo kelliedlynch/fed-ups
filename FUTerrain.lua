@@ -1,12 +1,13 @@
 function generateRandomSurface()
 
+local levelWidth = 1000
 local startingHeight = 50
 local verticalVariation = 30 -- in screen units (pixels)
 local horizontalVariation = .2 -- multipy this by x-value to get variation
 local goalWidth = 50
 local goalHeight = 60
 
-local terrainWidth = screenWidth - goalWidth
+local terrainWidth = levelWidth - goalWidth
 local currentWidth, terrainHeight = 0, startingHeight
 local vertices = { currentWidth, terrainHeight}
 print("starting", currentWidth, terrainHeight)
@@ -33,14 +34,17 @@ while #vertices < 16 do
 end 
 -- draw the edges of the screen
 staticBody:addEdges({0,0,0,screenHeight})
-staticBody:addEdges({screenWidth, 0, screenWidth, screenHeight})
-staticBody:addEdges({0,screenHeight, screenWidth, screenHeight})
+staticBody:addEdges({levelWidth, 0, levelWidth, screenHeight})
+staticBody:addEdges({0,screenHeight, levelWidth, screenHeight})
 -- draw the floor of the goal area
-staticBody:addEdges({screenWidth - goalWidth, startingHeight, screenWidth, startingHeight})
+staticBody:addEdges({levelWidth - goalWidth, startingHeight, levelWidth, startingHeight})
 -- draw the varied terrain
 staticBody:addChain(vertices)
 
 FUGoal = require "FUGoal"
-goal = FUGoal.new(goalWidth, goalHeight, screenWidth-goalWidth, startingHeight)
+goal = FUGoal.new(goalWidth, goalHeight, levelWidth-goalWidth, startingHeight)
+
+FULauncher = require "FULauncher"
+launcher = FULauncher.new()
 
 end

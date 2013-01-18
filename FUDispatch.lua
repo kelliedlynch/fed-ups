@@ -9,30 +9,10 @@ heldBox = nil
 
 function pointerCallback (x, y)
 	worldX, worldY = layer:wndToWorld(x, y)
-	-- if heldBox then
-	-- 	if heldBox.body then
-	-- 		heldBox.body:setTransform(worldX, worldY)
-	-- 	else
-	-- 		print("x,y", x, y)
-	-- 		print("worldX, worldY", worldX, worldY)
-	-- 		x, y = heldBox.sprite:worldToModel(worldX-heldBox.x-heldBox.width, worldY-heldBox.y-heldBox.height)
-	-- 		heldBox.sprite:addLoc(x, y)
-	-- 	end
-	-- end
 	if mouseBody then
-		print("mouseBody")
 		mouseJoint:setTarget(worldX, worldY)
 	end
-
-end
-
-function onDraw ( index, xOff, yOff, xFlip, yFlip )
-	MOAIGfxDevice.setPenColor ( 1, 1, 1, 1 )
-	MOAIGfxDevice.setPenWidth ( 2 )
-	MOAIDraw.drawLine (
-		startX, startY,
-		worldX, worldY
-	)
+	--print("rect", screenAnchor:getRect())
 end
 
 function clickCallback(down)
@@ -67,8 +47,6 @@ function clickCallback(down)
 		else
 			-- note starting position for calculation when launching box
 			launch = true
-			startX, startY = worldX, worldY
-
 			
 			local newBox = FUBox.new(worldX, worldY, 20)
 
@@ -83,12 +61,17 @@ function clickCallback(down)
 			mouseBody = world:addBody(MOAIBox2DBody.STATIC)
 			mouseJoint = world:addMouseJoint(mouseBody, newBox.body, worldX, worldY,  10000.0 * newBox.body:getMass())
 
-			local scriptDeck = MOAIScriptDeck.new ()
-			scriptDeck:setRect ( 0,0, screenWidth, screenHeight )
-			scriptDeck:setDrawCallback ( onDraw )
-			launchLine = MOAIProp2D.new ()
-			launchLine:setDeck ( scriptDeck )
-			HUDLayer:insertProp ( launchLine )
+			launcher:drawLaunchLine()
+
+			--anchor = MOAICameraAnchor2D.new()
+			--anchor:setParent(newBox.sprite)
+			screenAnchor:setParent(newBox.sprite)
+			--print("rect", newBox.sprite:getRect())
+			screenAnchor:setRect(newBox.sprite:getRect())
+			--fitter:insertAnchor(anchor)
+			--local thread = MOAICoroutine.new()
+			--thread:run(newBox.__checkPos, newBox)
+
 		end
 	else  -- mouseup/touchup event
 		if layer:getPartition() then 
