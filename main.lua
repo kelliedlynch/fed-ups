@@ -70,6 +70,5 @@ layer:insertProp ( damageCounter )
 --fixture2 = staticBody:addRect ( 10, 10, 460, 40 )
 --fixture2:setFilter ( 0x02 )
 --fixture2:setCollisionHandler ( onCollide, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END, 0x00 )
-FUEventDispatcher = require "FUEventDispatcher"
 
 require "FUDispatch"
