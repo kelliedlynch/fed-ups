@@ -61,17 +61,21 @@ function clickCallback(down)
 			mouseBody = world:addBody(MOAIBox2DBody.STATIC)
 			mouseJoint = world:addMouseJoint(mouseBody, newBox.body, worldX, worldY,  10000.0 * newBox.body:getMass())
 
+			-- Problem: having the camera anchor attached to a spinning object seems to cause problems. I think the transform for the spinning confuses it somehow.
+			-- Solution:
+			--  1. we create a tiny dynamic point with no mass, and fixed rotation
+			--  2. we attach it to the center of the box with a revolute joint, which means they can rotate freely
+			--  3. we attach the anchor to the dynamic point
+			-- The point now travels with the box, and does not rotate. The attached box can rotate as much as it wants, without causing any camera confusion. Because of its complete lack of mass, the attached point doesn't interfere at all with the box.
+			local point = world:addBody(MOAIBox2DBody.DYNAMIC)
+			point:setMassData(0)
+			point:setFixedRotation(true)
+			local point_fix = point:addCircle(newBox.x + (newBox.width / 2), newBox.y + (newBox.height / 2), 0.1)
+			local joint = world:addRevoluteJoint(point, newBox.body, newBox.body:getWorldCenter())
+			screenAnchor:setParent(point)
+
+
 			launcher:drawLaunchLine()
-
-			--anchor = MOAICameraAnchor2D.new()
-			--anchor:setParent(newBox.sprite)
-			screenAnchor:setParent(newBox.sprite)
-			--print("rect", newBox.sprite:getRect())
-			screenAnchor:setRect(newBox.sprite:getRect())
-			--fitter:insertAnchor(anchor)
-			--local thread = MOAICoroutine.new()
-			--thread:run(newBox.__checkPos, newBox)
-
 		end
 	else  -- mouseup/touchup event
 		if layer:getPartition() then 
