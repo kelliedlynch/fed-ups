@@ -9,7 +9,7 @@ function _B.new(x,y,size)
 	box.x = x - size/2
 	box.y = y - size/2
 
-	local body = world:addBody(MOAIBox2DBody.DYNAMIC)
+	local body = FUWorld:addBody(MOAIBox2DBody.DYNAMIC)
 
 	poly = {
 		box.x, box.y,
@@ -18,17 +18,14 @@ function _B.new(x,y,size)
 		box.x, box.y+size,
 	}
 
-	local fixture = body:addPolygon (poly)
+	local fixture = body:addPolygon(poly)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
-	fixture:setFilter (0x01, 0x01)
+	fixture:setFilter(0x01, 0x01)
 	fixture:setRestitution(.2)
-	fixture:setFilter(0x01)
-	fixture:setCollisionHandler (onBoxCollision, MOAIBox2DArbiter.ALL, 0x01, 0x01)
+	fixture:setCollisionHandler(onBoxCollision, MOAIBox2DArbiter.ALL, 0x01, 0x01)
 
-	body:resetMassData()
-
-	boxForFixture[fixture] = self
+	BoxForFixture[fixture] = box
 	box.fixture = fixture
 
 	local texture = MOAIGfxQuad2D.new()
@@ -36,8 +33,7 @@ function _B.new(x,y,size)
 	texture:setRect(box.x, box.y, box.x + size, box.y + size)
 	local sprite = MOAIProp2D.new()
 	sprite:setDeck(texture)
-	layer:insertProp(sprite)
-	--sprite:setLoc(0,0)
+	GameplayLayer:insertProp(sprite)
 
 	box.sprite = sprite
 	box.width = size
@@ -48,63 +44,49 @@ function _B.new(x,y,size)
 	box.sprite.body = body
 
 	box.damage = 0
-	damageCounter:setString(""..box.damage)
-	boxForProp[sprite] = box
-	boxForFixture[fixture] = box
+	DamageMeter:setString(""..box.damage)
+	BoxForProp[sprite] = box
+	body:resetMassData()
 
-	--FUEventDispatcher.setEventListener("followBox", box)
-	--box.displayDamageMeter(box)
-	-- print("getLoc", sprite:getLoc())
-	-- print("modelToWorld", sprite:modelToWorld(sprite:getLoc()))
-	-- print("worldToModel", sprite:worldToModel(sprite:getLoc()))
-	-- print("worldToWnd", layer:worldToWnd(sprite:getLoc()))
+
+	local point = FUWorld:addBody(MOAIBox2DBody.DYNAMIC)
+	point:setMassData(0)
+	point:setFixedRotation(true)
+	point:setTransform(box.x, box.y)
+	--print("x,y", box.x, box.y)
+	--local point_fix = point:addCircle(box.x + (box.width / 2), box.y + (box.height / 2), 10)
+	local point_fix = point:addCircle(0, 0, 0.1)
+	point_fix:setFilter(0x04, 0x04)
+	local joint = FUWorld:addRevoluteJoint(point, box.body, box.body:getWorldCenter())
+	point:resetMassData()
+	box.point = point
+
+	box:displayDamageMeter(box)
+
 	return box
-end
-
-function _B:__checkPos()
-	local x, y = 0,0
-	print("screenWidth", screenWidth)
-	while x < (screenWidth/2 - self.width/2) do
-		x, y = layer:worldToWnd(self.sprite:modelToWorld(0,0))
-		print("x,y", x, y)
-
-		-- print("getLoc", self.sprite:getLoc())
-
-		-- print("modelToWorld", self.sprite:modelToWorld(0,0)) --coords from bottom of screen
-		-- print("worldToWnd", layer:worldToWnd(self.sprite:modelToWorld(0,0))) --coords from top of screen
-		-- print("x",x)
-		-- print("screenWidth, self.width", screenWidth, self.width)
-		-- print("math", (screenWidth/2 - self.width/2))
-		coroutine:yield()
-	end
-	print("broke out of coroutine")
-	print("x,y", x, y)
-	print("rect", x-screenWidth/2, 0, x+screenWidth/2, screenHeight)
-	--screenAnchor:setRect(x-screenWidth/2, 0, x+screenWidth/2, screenHeight)
-	screenAnchor:setParent(self.sprite)
 end
 
 function _B:displayDamageMeter()
 	local damageMeter = MOAITextBox.new()
-	damageMeter:setFont ( font )
-	damageMeter:setTextSize(14)
+	damageMeter:setFont(font)
+	damageMeter:setTextSize(10)
 	damageMeter:setString(""..self.damage)
-	--local x,y = layer:worldToWnd(self.sprite:worldToModel(self.sprite:getLoc()))
-	local x,y = layer:worldToWnd(self.sprite:modelToWorld(0,0))
-	damageMeter:setRect ( x,y, 200, 40 )
-	damageMeter:setAlignment ( MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY )
-	damageMeter:setParent(self.sprite)
+	damageMeter:setRect(-10, 0, 30, 15)
+	damageMeter:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
+	local joint = FUWorld:addRevoluteJoint(self.point, self.body, self.body:getWorldCenter())
+	damageMeter:setParent(self.point)
 	damageMeter:setYFlip(true)
-	layer:insertProp(damageMeter)
+	HUDLayer:insertProp(damageMeter)
+	self.damageMeter = damageMeter
+	print("location", damageMeter:getLoc())
 end
 
 function _B:updateDamage(box, dmg)
-	-- print("damaging box, damage", box, dmg)
-	-- print("total damage on box", box.damage)
-	self.damage = self.damage + dmg
-	if self == activeBox then
-		damageCounter:setString(""..self.damage)
+	self.damage = self.damage + (dmg or 0)
+ 	if self == ScoringBox then
+		DamageMeter:setString(""..self.damage)
 	end
+	self.damageMeter:setString(""..self.damage)
 end
 
 function _B:deactivateWhenResting()
@@ -116,6 +98,10 @@ end
 function _B:__yield()
 	while self:isMoving() do coroutine:yield() end
 	self.body:destroy()
+	BoxForProp[self.sprite] = nil
+	BoxForFixture[self.fixture] = nil
+	self.point:destroy()
+	LevelController:turnOver()
 end
 
 function _B:isMoving()
@@ -139,13 +125,20 @@ function beginBoxCollision(boxFixture, obstacle)
 	ovelX, ovelY = obstacle:getBody():getLinearVelocity()
 	obstacleVelocity = math.floor(math.abs(ovelX)) + math.floor(math.abs(ovelY))
 	totalVelocity = boxVelocity + obstacleVelocity
-	local boxObject = boxForFixture[boxFixture]
+	local boxObject = BoxForFixture[boxFixture]
 	local totalDamage = math.floor((totalVelocity / 10) * (boxFixture:getBody():getMass() / 200)) 
 	boxObject:updateDamage(boxObject, totalDamage)
 end
 
-function followBox(box)
+function _B:releaseBox()
+	--------------------------------------------------------------------
+	-- Releases a box without launching it, applying normal physics
+	--------------------------------------------------------------------
+	MouseBody:destroy()
+	MouseBody = nil
 
+	self.body:setActive(true)
+	self.body:setFixedRotation(false)
 end
 
 return _B

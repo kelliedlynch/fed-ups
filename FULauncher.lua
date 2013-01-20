@@ -8,22 +8,24 @@ function _L.new()
 
 	local size = 20
 	local bodyX = 80
-	local bodyY = screenHeight/2 - size/2
+	local bodyY = ScreenHeight/2 - size/2
 
-	body = world:addBody(MOAIBox2DBody.STATIC)
+	local body = FUWorld:addBody(MOAIBox2DBody.STATIC)
+	launcher.body = body
 
-	poly = {
-		bodyX, bodyY,
-		bodyX + size, bodyY,
-		bodyX + size, bodyY + size,
-		bodyX, bodyY + size,
+	body:setTransform(bodyX, bodyY)
+	local poly = {
+		0, 0,
+		size, 0,
+		size, size,
+		0, size,
 	}
 
-	fixture = body:addPolygon (poly)
+	fixture = body:addPolygon(poly)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
 	fixture:setFilter(0x02, 0x02)
-	startX, startY = bodyX + size/2, bodyY + size/2
+	launcher.x, launcher.y = bodyX + size/2, bodyY + size/2
 
 	fixture:setCollisionHandler (onCollideWithLauncher, MOAIBox2DArbiter.ALL, 0x02, 0x02)
 
@@ -33,20 +35,59 @@ end
 
 function _L:drawLaunchLine()
 	local scriptDeck = MOAIScriptDeck.new ()
-	scriptDeck:setRect ( 0,0, screenWidth, screenHeight )
-	scriptDeck:setDrawCallback ( onDraw )
+	-- scriptDeck:setRect ( 0,0, ScreenWidth, ScreenHeight )
+	local w, h = ScreenWidth/2, ScreenHeight/2
+	scriptDeck:setRect(w, h, -w, -h)
+	scriptDeck:setDrawCallback(__launcher__onDraw)
 	launchLine = MOAIProp2D.new ()
-	launchLine:setDeck ( scriptDeck )
-	HUDLayer:insertProp ( launchLine )
+	launchLine:setDeck(scriptDeck)
+	launchLine:setLoc(0,0)
+	HUDLayer:insertProp(launchLine)
 end
 
-function onDraw ( index, xOff, yOff, xFlip, yFlip )
+function __launcher__onDraw( index, xOff, yOff, xFlip, yFlip)
 	MOAIGfxDevice.setPenColor ( 1, 1, 1, 1 )
 	MOAIGfxDevice.setPenWidth ( 2 )
+	--local sX, sY = startX, startY
 	MOAIDraw.drawLine (
-		startX, startY,
+		Launcher.x, Launcher.y,
 		worldX, worldY
 	)
+end
+
+function _L:loadLauncher()
+	local newBox = BoxGenerator.new(worldX, worldY, 20)
+	self.boxLoaded = newBox
+	-- ScoringBox is the box object being scored
+	ScoringBox = newBox
+	-- HeldBox is the box object under the pointer/finger
+	HeldBox = newBox
+
+	newBox.body:setFixedRotation(true)
+
+	MouseBody = FUWorld:addBody(MOAIBox2DBody.STATIC)
+	MouseJoint = FUWorld:addMouseJoint(MouseBody, newBox.body, worldX, worldY,  10000.0 * newBox.body:getMass())
+
+	CameraAnchor:setParent(newBox.point)
+	--CameraFitter:setDamper(0)
+
+	Launcher:drawLaunchLine()
+end
+
+function _L:launchBox()
+	HUDLayer:removeProp(launchLine)
+	launchLine = nil
+	scriptDeck = nil
+
+	-- also destroys joint
+	MouseBody:destroy()
+	MouseBody = nil
+
+	self.boxLoaded.body:setActive(true)
+	self.boxLoaded.body:setFixedRotation(false)
+
+	self.boxLoaded.body:applyLinearImpulse(5000 * (self.x-worldX), 5000 * (self.y - worldY), worldX, worldY)
+	HeldBox = nil
 end
 
 function onCollideWithLauncher()

@@ -6,7 +6,7 @@ function _GOAL.new(width, height, posX, posY)
 	local goal = {}
 	setmetatable(goal, _GOAL)
 
-	body = world:addBody(MOAIBox2DBody.STATIC)
+	body = FUWorld:addBody(MOAIBox2DBody.STATIC)
 
 	poly = {
 		posX, posY,
@@ -33,20 +33,16 @@ function onCollideWithGoal(event, goal, box)
 end
 
 function preCollisionWithGoal(goal, box)
-	print("pre")
-	--box:getBody():setActive(false)
 	box:getBody():setLinearVelocity(0, -.1)
 	box:getBody():setAngularVelocity(0)
-	--goal:getBody():setActive(false)
-	box:setFilter(0x01, 0x02)
-	boxForFixture[box]:deactivateWhenResting()
-	
-	--goal:getBody():setActive(true)
+	box:setFilter(0x02, 0x02)
+	local fix = BoxForFixture[box]
+	fix:deactivateWhenResting()
 end
 
 function beginCollisionWithGoal(goal, box)
 	print("begin")
-	--layer:removeProp(boxForFixture[box].sprite)
+	--GameplayLayer:removeProp(boxForFixture[box].sprite)
 	--box:getBody():destroy()
 	--box:setFilter(0x02)
 	--goal:getBody():setActive(false)

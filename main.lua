@@ -1,74 +1,74 @@
+--------------------------------------------------------------------
+-- Global Variables
+--------------------------------------------------------------------
+ScreenWidth, ScreenHeight = 480, 320
+
+-- layers and partitions
+GameplayPartition = nil
+GameplayLayer = nil
+HUDLayer = nil
+-- camera
+Camera = nil
+CameraAnchor = nil
+CameraFitter = nil
+-- global touch handler
+TouchDispatcher = nil
+
+--
+-- Gameplay elements
+--
+MouseBody = nil
+MouseJoint = nil
+-- terrain
+TerrainBody = nil
+Launcher = nil
+-- global tables to assist with looking up boxes
+BoxForFixture = {}
+BoxForProp = {}
+-- ScoringBox is the box currently being scored (most recent one acted on by player)
+ScoringBox = nil
+-- HeldBox is the box currently being dragged around by the pointer
+HeldBox = nil
+
+
 -- Create the window
 local deviceHeight = MOAIEnvironment.horizontalResolution
 local deviceWidth = MOAIEnvironment.verticalResolution
 if deviceWidth == nil then deviceWidth = 480 end
 if deviceHeight == nil then deviceHeight = 320 end
-MOAISim.openWindow ( "Fed-Ups", deviceWidth, deviceHeight )
+MOAISim.openWindow("Fed-Ups", deviceWidth, deviceHeight)
 
-viewport = MOAIViewport.new ()
-viewport:setSize ( deviceWidth , deviceHeight )
-screenWidth, screenHeight = 480, 320
-viewport:setScale ( 480, 320 )
+viewport = MOAIViewport.new()
+viewport:setSize(deviceWidth , deviceHeight)
+viewport:setScale(480, 320)
 --viewport:setOffset ( -1, -1 )
 
-layer = MOAILayer2D.new ()
-layer:setViewport ( viewport )
-MOAISim.pushRenderPass ( layer )
+GameplayLayer = MOAILayer.new()
+GameplayLayer:setViewport(viewport)
+MOAISim.pushRenderPass(GameplayLayer)
 
-HUDLayer = MOAILayer2D.new ()
-HUDLayer:setViewport ( viewport )
-MOAISim.pushRenderPass ( HUDLayer )
+HUDLayer = MOAILayer.new ()
+HUDLayer:setViewport(viewport)
+MOAISim.pushRenderPass(HUDLayer)
 
 -- initialize the camera
-camera = MOAICamera2D.new()
-layer:setCamera(camera)
+Camera = MOAICamera2D.new()
+GameplayLayer:setCamera(Camera)
+HUDLayer:setCamera(Camera)
 
-fitter = MOAICameraFitter2D.new()
-fitter:setViewport(viewport)
-fitter:setCamera(camera)
-fitter:setBounds(0, 0, 1000, 320)
-fitter:setMin(320)
-fitter:start()
+CameraFitter = MOAICameraFitter2D.new()
+CameraFitter:setViewport(viewport)
+CameraFitter:setCamera(Camera)
+CameraFitter:setBounds(0, 0, 480, 320)
+CameraFitter:setMin(320)
+CameraFitter:start()
 
-screenAnchor = MOAICameraAnchor2D.new()
+CameraAnchor = MOAICameraAnchor2D.new()
+CameraFitter:insertAnchor(CameraAnchor)
+HUDLayer:setParent(CameraAnchor)
 
-fitter:insertAnchor(screenAnchor)
+font = MOAIFont.new()
+font:load('arial-rounded.TTF')
 
--- set up the world and start its simulation
-world = MOAIBox2DWorld.new ()
-world:setGravity(0, -10)
-world:setUnitsToMeters(1/50)
-world:start()
-layer:setBox2DWorld(world)
---world:setDebugDrawEnabled(true)
---world:setDebugDrawFlags(MOAIBox2DWorld.DEBUG_DRAW_JOINTS, MOAIBox2DWorld.DEBUG_DRAW_BOUNDS, MOAIBox2DWorld.DEBUG_DRAW_PAIRS, MOAIBox2DWorld.DEBUG_DRAW_CENTERS)
-
-partition = MOAIPartition.new()
-layer:setPartition(partition)
-
-FUBox = require "FUBox"
---brownBox = FUBox.new(100,200,50)
-
-staticBody = world:addBody ( MOAIBox2DBody.STATIC )
-require "FUTerrain"
-generateRandomSurface()
-
--- damage counter
-text = "0"
-
-font = MOAIFont.new ()
-font:load ( 'arial-rounded.TTF' )
-
-damageCounter = MOAITextBox.new ()
-damageCounter:setFont ( font )
-damageCounter:setTextSize ( 24 )
-damageCounter:setString ( text )
-damageCounter:setRect ( 0,0, 200, 40 )
-damageCounter:setAlignment ( MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY )
-damageCounter:setYFlip(true)
-layer:insertProp ( damageCounter )
---fixture2 = staticBody:addRect ( 10, 10, 460, 40 )
---fixture2:setFilter ( 0x02 )
---fixture2:setCollisionHandler ( onCollide, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END, 0x00 )
-
-require "FUDispatch"
+LevelController = require "FULevel"
+CurrentLevel = LevelController.loadLevel("world0level1")
