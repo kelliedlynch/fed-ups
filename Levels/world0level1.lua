@@ -9,6 +9,7 @@ local goalWidth = 50
 local goalHeight = 60
 
 CameraFitter:setBounds(0, 0, levelWidth, levelHeight)
+HUDLayer:setParent(CameraAnchor)
 
 
 -- local terrainWidth = levelWidth - goalWidth
