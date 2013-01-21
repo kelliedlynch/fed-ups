@@ -1,51 +1,29 @@
-TerrainBody = FUWorld:addBody(MOAIBox2DBody.STATIC)
-
-local levelWidth = 1000
-local levelHeight = 800
-local startingHeight = 50
-local verticalVariation = 30 -- in screen units (pixels)
-local horizontalVariation = .2 -- multipy this by x-value to get variation
+levelWidth = 1000
+levelHeight = 800
+floorHeight = 50
 local goalWidth = 50
 local goalHeight = 60
 
+TerrainBody = FUWorld:addBody(MOAIBox2DBody.STATIC)
 CameraFitter:setBounds(0, 0, levelWidth, levelHeight)
-HUDLayer:setParent(CameraAnchor)
 
-
--- local terrainWidth = levelWidth - goalWidth
--- local currentWidth, terrainHeight = 0, startingHeight
--- local vertices = { currentWidth, terrainHeight}
--- while #vertices < 16 do
--- 	-- how many points are left?
--- 	local pointsLeft = 8 - (#vertices / 2)
--- 	-- how much distance is left?
--- 	local remainingWidth = terrainWidth - currentWidth
--- 	-- so the approximate x-distance of the next point is...
--- 	local nextX = remainingWidth / pointsLeft
--- 	-- and the y-value will be:
--- 	local nextY = vertices[#vertices] + math.random(-20, 20)
--- 	-- constrain the height later.
-
--- 	if pointsLeft == 1 then
--- 		table.insert(vertices, terrainWidth)
--- 		table.insert(vertices, startingHeight)
--- 	else
--- 		nextX = currentWidth + nextX + math.random((-nextX*horizontalVariation), (nextX*horizontalVariation))
--- 		table.insert(vertices, nextX)
--- 		table.insert(vertices, nextY)
--- 	end
--- 	currentWidth = nextX
--- end 
 -- draw the edges of the screen
-TerrainBody:addEdges({0,0,0,levelHeight})
-TerrainBody:addEdges({levelWidth, 0, levelWidth, levelHeight})
-TerrainBody:addEdges({0, levelHeight, levelWidth, levelHeight})
+local left = TerrainBody:addPolygon({0,0,0,levelHeight,0,0})
+left:setFilter(FILTER_ACTIVE_TERRAIN, FILTER_ACTIVE_BOX)
+local right = TerrainBody:addPolygon({levelWidth, 0, levelWidth, levelHeight, levelWidth, 0})
+right:setFilter(FILTER_ACTIVE_TERRAIN, FILTER_ACTIVE_BOX)
+local ceiling = TerrainBody:addPolygon({0, levelHeight, levelWidth, levelHeight, 0, levelHeight})
+ceiling:setFilter(FILTER_ACTIVE_TERRAIN, FILTER_ACTIVE_BOX)
 -- draw the floor of the goal area
-TerrainBody:addEdges({0, startingHeight, levelWidth, startingHeight})
-
+local floor = TerrainBody:addPolygon({0, floorHeight, levelWidth, floorHeight, 0, floorHeight})
+floor:setFilter(FILTER_ACTIVE_TERRAIN, FILTER_ACTIVE_BOX)
 
 FUGoal = require "FUGoal"
-goal = FUGoal.new(goalWidth, goalHeight, levelWidth-goalWidth, startingHeight)
+local goal = FUGoal.new(goalWidth, goalHeight, levelWidth-goalWidth, floorHeight)
 
 FULauncher = require "FULauncher"
 Launcher = FULauncher.new()
+
+TG = require "FUTerrain"
+TG.rect(500, 50, 400, 100)
+TG.trampoline(300, 60, 400, 80)

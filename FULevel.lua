@@ -34,6 +34,7 @@ function _L.loadLevel(levelID)
 	DamageMeter:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
 	DamageMeter:setYFlip(true)
 	HUDLayer:insertProp(DamageMeter)
+	--DamageMeter:setParent(HUDLayer)
 	--HUDLayer:setParent(CameraAnchor)
 
 	TouchDispatcher = require "FUTouchDispatcher"

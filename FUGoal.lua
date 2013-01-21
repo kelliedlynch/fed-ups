@@ -6,7 +6,7 @@ function _GOAL.new(width, height, posX, posY)
 	local goal = {}
 	setmetatable(goal, _GOAL)
 
-	body = FUWorld:addBody(MOAIBox2DBody.STATIC)
+	local body = FUWorld:addBody(MOAIBox2DBody.STATIC)
 
 	poly = {
 		posX, posY,
@@ -14,12 +14,12 @@ function _GOAL.new(width, height, posX, posY)
 		posX + width, posY + height,
 	}
 
-	fixture = body:addPolygon (poly)
+	local fixture = body:addPolygon(poly)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
-	fixture:setFilter(0x01, 0x01)
+	fixture:setFilter(FILTER_GOAL, FILTER_ACTIVE_BOX)
 
-	fixture:setCollisionHandler (onCollideWithGoal, MOAIBox2DArbiter.ALL, 0x01, 0x01)
+	fixture:setCollisionHandler (onCollideWithGoal, MOAIBox2DArbiter.ALL, FILTER_ACTIVE_BOX)
 
 	body:resetMassData()
 	return goal
@@ -35,9 +35,11 @@ end
 function preCollisionWithGoal(goal, box)
 	box:getBody():setLinearVelocity(0, -.1)
 	box:getBody():setAngularVelocity(0)
-	box:setFilter(0x02, 0x02)
+	goal:setFilter(FILTER_INACTIVE_TERRAIN)
+	--box:setFilter(FILTER_INACTIVE_BOX, FILTER_INACTIVE_BOX)
 	local fix = BoxForFixture[box]
-	fix:deactivateWhenResting()
+	--fix:deactivateWhenResting()
+	--goal:setFilter(FILTER_ACTIVE_TERRAIN)
 end
 
 function beginCollisionWithGoal(goal, box)

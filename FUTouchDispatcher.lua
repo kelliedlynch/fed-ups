@@ -32,7 +32,7 @@ function _D.clickCallback(down)
 			Launcher:loadLauncher()
 		end
 	else  -- mouseup/touchup event
-		if launchLine and HeldBox then
+		if Launcher.boxLoaded then
 			Launcher:launchBox(HeldBox)
 		elseif HeldBox then
 			HeldBox:releaseBox()

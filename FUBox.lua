@@ -21,9 +21,10 @@ function _B.new(x,y,size)
 	local fixture = body:addPolygon(poly)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
-	fixture:setFilter(0x01, 0x01)
+	fixture:setFilter(FILTER_ACTIVE_BOX, FILTER_ACTIVE_TERRAIN)
 	fixture:setRestitution(.2)
-	fixture:setCollisionHandler(onBoxCollision, MOAIBox2DArbiter.ALL, 0x01, 0x01)
+	fixture:setCollisionHandler(onBoxCollision, MOAIBox2DArbiter.ALL, FILTER_ACTIVE_TERRAIN)
+	--fixture:setCollisionHandler(onCollideWithGoal, MOAIBox2DArbiter.ALL, FILTER_GOAL)
 
 	BoxForFixture[fixture] = box
 	box.fixture = fixture
@@ -56,7 +57,8 @@ function _B.new(x,y,size)
 	--print("x,y", box.x, box.y)
 	--local point_fix = point:addCircle(box.x + (box.width / 2), box.y + (box.height / 2), 10)
 	local point_fix = point:addCircle(0, 0, 0.1)
-	point_fix:setFilter(0x04, 0x04)
+	--point_fix:setFilter(FILTER_INACTIVE_TERRAIN, 0, GROUP_INACTIVE_TERRAIN)
+	point_fix:setSensor(true)
 	local joint = FUWorld:addRevoluteJoint(point, box.body, box.body:getWorldCenter())
 	point:resetMassData()
 	box.point = point
@@ -73,12 +75,14 @@ function _B:displayDamageMeter()
 	damageMeter:setString(""..self.damage)
 	damageMeter:setRect(-10, 0, 30, 15)
 	damageMeter:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
-	local joint = FUWorld:addRevoluteJoint(self.point, self.body, self.body:getWorldCenter())
+	--local joint = FUWorld:addRevoluteJoint(self.point, self.body, self.body:getWorldCenter())
 	damageMeter:setParent(self.point)
+
 	damageMeter:setYFlip(true)
-	HUDLayer:insertProp(damageMeter)
+	PhysicsHUDLayer:insertProp(damageMeter)
 	self.damageMeter = damageMeter
-	print("location", damageMeter:getLoc())
+	print("meter location", damageMeter:getLoc())
+	--HUDLayer:setParent(CameraAnchor)
 end
 
 function _B:updateDamage(box, dmg)
@@ -90,14 +94,16 @@ function _B:updateDamage(box, dmg)
 end
 
 function _B:deactivateWhenResting()
-	self.fixture:setFilter(0x02)
+	print("deactivating")
 	local thread = MOAICoroutine.new()
 	thread:run(self.__yield, self)
 end
 
 function _B:__yield()
 	while self:isMoving() do coroutine:yield() end
+	print("destroying physics object")
 	self.body:destroy()
+	--self.body = nil
 	BoxForProp[self.sprite] = nil
 	BoxForFixture[self.fixture] = nil
 	self.point:destroy()
@@ -105,10 +111,11 @@ function _B:__yield()
 end
 
 function _B:isMoving()
-	if self.body:getLinearVelocity() ~= 0 and self.body:getAngularVelocity() ~= 0 then
-		return true
+	if self.body:getLinearVelocity() == 0 and self.body:getAngularVelocity() == 0 then
+		--self.body = nil
+		return false
 	end
-	return false
+	return true
 end
 
 function onBoxCollision(event, boxFixture, obstacle)
@@ -119,7 +126,6 @@ function onBoxCollision(event, boxFixture, obstacle)
 end
 
 function beginBoxCollision(boxFixture, obstacle)
-	print("boxFixture, obstacle", boxFixture, obstacle)
 	bvelX, bvelY = boxFixture:getBody():getLinearVelocity()
 	boxVelocity = math.floor(math.abs(bvelX)) + math.floor(math.abs(bvelY))
 	ovelX, ovelY = obstacle:getBody():getLinearVelocity()
