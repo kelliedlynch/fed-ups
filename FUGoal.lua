@@ -35,8 +35,8 @@ end
 function preCollisionWithGoal(goal, box)
 	box:getBody():setLinearVelocity(0, -.1)
 	box:getBody():setAngularVelocity(0)
-	goal:setFilter(FILTER_INACTIVE_TERRAIN)
-	--box:setFilter(FILTER_INACTIVE_BOX, FILTER_INACTIVE_BOX)
+	--goal:setFilter(FILTER_INACTIVE_TERRAIN)
+	box:setFilter(FILTER_INACTIVE_BOX)
 	local fix = BoxForFixture[box]
 	--fix:deactivateWhenResting()
 	--goal:setFilter(FILTER_ACTIVE_TERRAIN)

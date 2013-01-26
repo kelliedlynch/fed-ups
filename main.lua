@@ -41,7 +41,8 @@ FILTER_INACTIVE_TERRAIN = 0x08
 FILTER_GOAL = 0x16
 
 GROUP_ACTIVE_BOX = 1
-GROUP_ACTIVE_TERRAIN = 2
+-- group for the box and permanent terrain objects; ensures the box will never fall through the world
+GROUP_PRIMARY_OBJECTS = 0X02
 GROUP_ACTIVE_TERRAIN = -1
 GROUP_INACTIVE_TERRAIN = -2
 --------------------------------------------------------------------

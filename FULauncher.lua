@@ -18,7 +18,7 @@ function _L.new()
 	local fixture = body:addRect(0, 0, size, size)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
-	fixture:setFilter(FILTER_INACTIVE_TERRAIN, FILTER_INACTIVE_TERRAIN)
+	fixture:setSensor(true)
 	launcher.x, launcher.y = bodyX + size/2, bodyY + size/2
 
 	fixture:setCollisionHandler (onCollideWithLauncher, MOAIBox2DArbiter.ALL, FILTER_INACTIVE_TERRAIN, FILTER_INACTIVE_TERRAIN)
@@ -59,6 +59,7 @@ function _L:loadLauncher()
 	newBox.body:setFixedRotation(true)
 
 	MouseBody = FUWorld:addBody(MOAIBox2DBody.STATIC)
+	--MouseBody:setSensor(true)
 	MouseJoint = FUWorld:addMouseJoint(MouseBody, newBox.body, worldX, worldY,  10000.0 * newBox.body:getMass())
 
 	CameraFitter:setDamper(0)
@@ -79,7 +80,9 @@ function _L:launchBox()
 	self.boxLoaded.body:setActive(true)
 	self.boxLoaded.body:setFixedRotation(false)
 
-	self.boxLoaded.body:applyLinearImpulse(5000 * (self.x-worldX), 5000 * (self.y - worldY), worldX, worldY)
+	-- adding the .001 here prevents the box from immediately deactivating if the box hasn't moved
+	-- ...I think
+	self.boxLoaded.body:applyLinearImpulse(5000 * (self.x-worldX)+.001, 5000 * (self.y - worldY) +.001, worldX, worldY)
 	HeldBox = nil
 	self.boxLoaded:deactivateWhenResting()
 end

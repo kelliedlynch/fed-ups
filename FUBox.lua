@@ -19,9 +19,10 @@ function _B.new(x,y,size)
 	}
 
 	local fixture = body:addPolygon(poly)
+	-- local fixture = body:addCircle(x, y, size/2)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
-	fixture:setFilter(FILTER_ACTIVE_BOX, FILTER_ACTIVE_TERRAIN)
+	fixture:setFilter(FILTER_ACTIVE_BOX, FILTER_ACTIVE_TERRAIN, GROUP_PRIMARY_OBJECTS)
 	fixture:setRestitution(.2)
 	fixture:setCollisionHandler(onBoxCollision, MOAIBox2DArbiter.ALL, FILTER_ACTIVE_TERRAIN)
 	--fixture:setCollisionHandler(onCollideWithGoal, MOAIBox2DArbiter.ALL, FILTER_GOAL)
@@ -47,6 +48,7 @@ function _B.new(x,y,size)
 	box.damage = 0
 	DamageMeter:setString(""..box.damage)
 	BoxForProp[sprite] = box
+	body:setAngularDamping(.9)
 	body:resetMassData()
 
 
@@ -57,8 +59,8 @@ function _B.new(x,y,size)
 	--print("x,y", box.x, box.y)
 	--local point_fix = point:addCircle(box.x + (box.width / 2), box.y + (box.height / 2), 10)
 	local point_fix = point:addCircle(0, 0, 0.1)
-	--point_fix:setFilter(FILTER_INACTIVE_TERRAIN, 0, GROUP_INACTIVE_TERRAIN)
 	point_fix:setSensor(true)
+	point:setFixedRotation(true)
 	local joint = FUWorld:addRevoluteJoint(point, box.body, box.body:getWorldCenter())
 	point:resetMassData()
 	box.point = point
