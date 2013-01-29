@@ -11,15 +11,24 @@ function _B.new(x,y,size)
 
 	local body = FUWorld:addBody(MOAIBox2DBody.DYNAMIC)
 
-	poly = {
-		box.x, box.y,
-		box.x+size, box.y,
-		box.x+size, box.y+size,
-		box.x, box.y+size,
-	}
+	-- poly = {
+	-- 	box.x, box.y,
+	-- 	box.x+size, box.y,
+	-- 	box.x+size, box.y+size,
+	-- 	box.x, box.y+size,
+	-- }
+	body:setTransform(box.x, box.y)
+	-- poly = {
+	-- 	0, 0,
+	-- 	size, 0,
+	-- 	size, size,
+	-- 	0, size,
+	-- }
 
-	local fixture = body:addPolygon(poly)
+
+	-- local fixture = body:addPolygon(poly)
 	-- local fixture = body:addCircle(x, y, size/2)
+	local fixture = body:addRect(0,0, size, size)
 	fixture:setDensity(1)
 	fixture:setFriction(.8)
 	fixture:setFilter(FILTER_ACTIVE_BOX, FILTER_ACTIVE_TERRAIN, GROUP_PRIMARY_OBJECTS)
@@ -32,7 +41,8 @@ function _B.new(x,y,size)
 
 	local texture = MOAIGfxQuad2D.new()
 	texture:setTexture('Resources/Textures/brown-4x4.png')
-	texture:setRect(box.x, box.y, box.x + size, box.y + size)
+	-- texture:setRect(box.x, box.y, box.x + size, box.y + size)
+	texture:setRect(0, 0, size, size)
 	local sprite = MOAIProp2D.new()
 	sprite:setDeck(texture)
 	GameplayLayer:insertProp(sprite)

@@ -26,5 +26,7 @@ Launcher = FULauncher.new()
 
 TG = require "FUTerrain"
 --TG.rect(500, 50, 400, 100)
-TG.trampoline(300, 280, 500, 40, 180)
-TG.trampoline(300, 40, 500, 40, 0)
+--TG.trampoline(300, 280, 500, 40, 180)
+--TG.trampoline(300, 40, 500, 40, 0)
+TG.launcher(100, 80, 80)
+TG.trampoline(550, 80, 100, 40)
